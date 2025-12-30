@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>calm — UGC</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    /* ===== COLORS ===== */
+    :root {
+      --bg: #fafafa;
+      --text: #241a22;
+      --muted: #6e6470;
+
+      /* soft pink → lavender banner */
+      --banner: linear-gradient(
+        180deg,
+        #f6e9ec 0%,
+        #efe3f7 55%,
+        #e6dcf6 100%
+      );
+
+      --card: rgba(255,255,255,0.85);
+      --border: rgba(180,170,190,0.35);
+    }
+
+    /* ===== BASE ===== */
+    * {
+      box-sizing: border-box;
+    }
+
+/* ===== LINKS (NO BLUE) ===== */
+a, a:visited {
+  color: #d88bb5;        /* soft pink */
+  text-decoration: none; /* no underline */
+}
+
+a:hover {
+  color: #c978a6;        /* darker pink on hover */
+}
+
+body{
+  margin:0;
+  font-family: Arial, sans-serif;
+  background:#fafafa;
+  color:#111;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+  pointer-events:none;
+}
+
+
+  background:
+    radial-gradient(circle at top,
+      rgba(255,218,228,.35),
+      transparent 60%),
+    var(--bg);
+
+  color: var(--text);
+  text-transform: lowercase;
+}
+
+    }
+
+   .banner {
+  background: #ffffff;
+  padding: 32px;
+  border-bottom: 1px solid #eee;
+}
+
+    .title {
+      font-size: 36px;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    /* ===== CONTENT ===== */
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 24px;
+      .container {
+  display: flex;
+  flex-direction: column;
+  gap: 28px; /* space between cards */
+  /* ===== guns.lol-ish stacked "fake cards" ===== */
+.stage{
+  position: relative;
+  max-width: 900px;
+  margin: 28px auto 0;
+  padding: 18px;
+  .stage {
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+}
+
+/* top row layout */
+.profile-top {
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  align-items: center;
+  gap: 14px;
+}
+
+/* pfp box */
+.pfp {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 182, 213, .55);
+  background: rgba(255,255,255,.6);
+}
+
+/* name block */
+.name {
+  font-weight: 800;
+  line-height: 1.1;
+}
+.mini {
+  font-size: 12px;
+  opacity: .7;
+  margin-top: 4px;
+}
+
+/* buttons on the right */
+.profile-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* status pill sits under */
+.status {
+  width: fit-content;
+}
+}
+
+.back{
+  position: absolute;
+  inset: 0;
+  border-radius: 28px;
+  background: rgba(255,255,255,.55);
+  border: 1px solid rgba(255,182,213,.28);
+  box-shadow: 0 24px 80px rgba(0,0,0,.06);
+  pointer-events: none;
+}
+
+/* offsets so you can SEE them */
+.back1{ transform: rotate(-3deg) translate(-14px, 10px); opacity: .55; filter: blur(.2px); }
+.back2{ transform: rotate(2deg)  translate(14px, 22px); opacity: .40; filter: blur(.3px); }
+.back3{ transform: rotate(-1deg) translate(-6px, 34px); opacity: .28; filter: blur(.4px); }
+
+/* your real content stays on top */
+.front{
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 18px;
+}
+}
+
+    }
+
+  .card{
+  background:rgba(255,255,255,.97);
+  border-radius:20px;
+  padding:24px;
+  border:1px solid rgba(0,0,0,.06);
+  box-shadow:0 8px 20px rgba(0,0,0,.05);
+}
+
+}
+    .pill {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      margin-right: 8px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 10px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: white;
+      font-weight: bold;
+      cursor: pointer;
+      margin-right: 8px;
+    }
+
+    button:hover {
+      opacity: 0.85;
+    }
+
+    /* ===== PRICES ===== */
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .price-row:last-child {
+      border-bottom: none;
+    }
+
+    /* ===== FOOTER ===== */
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 40px;
+    } /* ===== FORCE NO BLUE ANYWHERE (PUT THIS LAST) ===== */
+a, a:visited, a:active {
+  color: #d88bb5 !important;
+  text-decoration: none !important;
+}
+
+a:hover {
+  color: #c978a6 !important;
+}
+
+/* if your tabs are .chip links */
+.chip, .chip:visited, .chip:active {
+  color: #b96a9a !important;
+}/* ===== COMMISSIONS STATUS ===== */
+.status{
+  display:flex;
+  align-items:center;
+  justify-content:center; /* THIS centers it */
+  gap:8px;
+  margin:14px auto 0;     /* auto = centered */
+  width:fit-content;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #f2a8c6; /* pink dot */
+}
+ /* ===== COPY TOAST ===== */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%) translateY(10px);
+  background: rgba(255,255,255,.92);
+  border: 1px solid rgba(216,139,181,.45);
+  color: #b96a9a;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-weight: 800;
+  box-shadow: 0 14px 40px rgba(27,18,24,.12);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px dashed rgba(0,0,0,0.08);
+  font-size: 14px;
+}
+
+.price-row:last-child {
+  border-bottom: none;
+}
+/* lowercase everything inside cards */
+.card,
+.card * {
+  text-transform: lowercase;
+}
+
+/* main card style */
+.card {
+  background: rgba(255,255,255,.96);
+  border-radius: 22px;
+  padding: 26px;
+  border: 1px solid rgba(255,205,220,.35);
+
+  box-shadow:
+    0 8px 20px rgba(255,182,193,.12),
+    inset 0 0 0 1px rgba(255,255,255,.6);
+
+  transition:
+    transform .22s ease,
+    box-shadow .22s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 16px 40px rgba(255,182,213,.18),
+    inset 0 0 0 1px rgba(255,255,255,.6);
+}
+
+/* soft animated buttons */
+button {
+  appearance: none;
+  border: 1px solid rgba(255, 182, 213, .55);
+  background: rgba(255,255,255,.92);
+  color: #b96a9a;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+  letter-spacing: .2px;
+  cursor: pointer;
+
+  box-shadow:
+    0 10px 24px rgba(255, 182, 213, .18),
+    inset 0 0 0 1px rgba(255,255,255,.8);
+
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    background .18s ease,
+    border-color .18s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 182, 213, .85);
+  background: rgba(255, 244, 249, .95);
+  box-shadow:
+    0 16px 34px rgba(255, 182, 213, .26),
+    inset 0 0 0 1px rgba(255,255,255,.9);
+}
+
+button:active {
+  transform: translateY(0px) scale(.98);
+  box-shadow:
+    0 10px 22px rgba(255, 182, 213, .18),
+    inset 0 0 0 1px rgba(255,255,255,.85);
+}
+
+button:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(255, 182, 213, .35),
+    0 16px 34px rgba(255, 182, 213, .22);
+}.container{
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 44px 16px 70px;
+  display: grid;
+  gap: 22px;
+}
+
+.banner{
+  background:#fff;
+  padding: 26px 22px;
+  border-bottom: 1px solid #eee;
+}
+
+.title{ letter-spacing: -0.5px; }
+
+.subtitle{
+  opacity: .65;
+  font-size: 13px;
+}.profile-card{
+  padding: 26px;
+}
+
+.profile-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  flex-wrap:wrap;
+}
+
+.profile-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.avatar{
+  width:44px;
+  height:44px;
+  border-radius:14px;
+  background: linear-gradient(180deg, #ffe7f2, #ffffff);
+  border: 1px solid rgba(255,182,213,.55);
+  box-shadow: 0 10px 22px rgba(255,182,213,.16);
+}
+
+.handle{
+  font-weight:800;
+  font-size:16px;
+}
+
+.mini{
+  font-size:12px;
+  opacity:.65;
+}
+
+.profile-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+<style>
+  /* all your existing css above */
+
+  /* ===== cute extras (add at the bottom) ===== */
+
+  body {
+    animation: fadeIn .35s ease both;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card {
+    transition: transform .25s ease, box-shadow .25s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-6px);
+  }
+
+  body::before {
+    content:"";
+    position:fixed;
+    inset:-40px;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(255,182,213,.18), transparent 45%),
+      radial-gradient(circle at 80% 20%, rgba(255,210,235,.14), transparent 50%),
+      radial-gradient(circle at 60% 80%, rgba(255,182,213,.12), transparent 55%);
+    pointer-events:none;
+    z-index:-1;
+  }
+  body {
+  opacity: 0;
+  animation: pageFade 0.9s ease forwards;
+}
+
+@keyframes pageFade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+</style>
+</head>
+<body>
+    <audio id="bg-music" src="sixthirty.mp3" loop></audio>
+    <audio id="bg-music" loop>
+  <source src="sixthirty.mp3" type="audio/mpeg">
+</audio>
+
+  <!-- CONTENT -->
+  <div class="container">
+    <div class="container">
+
+  <div class="stage">
+    <div class="back back1"></div>
+    <div class="back back2"></div>
+    <div class="back back3"></div>
+
+    <div class="front">
+      <!-- your cards go here -->
+
+    <!-- INFO CARD -->
+    <div class="card profile-card">
+  <div class="profile-top">
+    <div class="profile-left">
+      <div class="avatar"></div>
+      <div>
+        <div class="handle">calm</div>
+        <div class="mini">user: nyu161</div>
+      </div>
+    </div>
+
+    <div class="profile-actions">
+      <button id="joinDiscordBtn">join discord</button>
+      <button id="copyUserBtn">copy user</button>
+      <button onclick="toggleMusic()">♡ music</button>
+    </div>
+  </div>
+
+  <div style="margin-top:14px" class="status">
+    <div class="status-dot"></div>
+    commissions: open
+  </div>
+</div>
+    <!-- DISCORD WIDGET -->
+    <div class="card">
+      <iframe
+  src="https://discord.com/widget?id=1363916279613751386&theme=light"
+  width="100%"
+  height="320"
+  allowtransparency="true"
+  frameborder="0"
+  sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts">
+</iframe>
+
+    </div>
+
+    <!-- PRICES -->
+    <div class="card">
+      <h2>Prices</h2>
+      <p style="color:var(--muted)">
+      </p>
+
+      <div class="price-row">
+        <b>Pigtails</b>
+        <span>12k–25k - $60–$125</span>
+      </div>
+
+      <div class="price-row">
+        <b>Long Hair</b>
+        <span>30k–80k - $150–$400</span>
+      </div>
+
+      <div class="price-row">
+        <b>Accessories</b>
+        <span>10k–30k - $50–$150</span>
+      </div>
+    </div>
+  </div> <!-- end Prices card -->
+
+</div>
+<footer>
+  calm ♡ nyu161
+</footer>
+
+<div class="toast" id="toast">copied ♡</div>
+
+<script>
+    
+    const music = document.getElementById("bg-music");
+
+function toggleMusic() {
+  if (music.paused) {
+    music.volume = 0.25; // soft
+    music.play();
+  } else {
+    music.pause();
+  }
+}
+
+  const DISCORD_INVITE = "https://discord.gg/calm";
+  const DISCORD_USER = "nyu161";
+
+  const toast = document.getElementById("toast");
+
+  function showToast(text) {
+    toast.textContent = text;
+    toast.classList.add("show");
+    clearTimeout(window.__toastTimer);
+    window.__toastTimer = setTimeout(() => {
+      toast.classList.remove("show");
+    }, 1200);
+  }
+
+  async function copyText(text, msg) {
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast(msg);
+    } catch {
+      const temp = document.createElement("textarea");
+      temp.value = text;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand("copy");
+      document.body.removeChild(temp);
+      showToast(msg);
+    }
+  }
+
+  document.getElementById("joinDiscordBtn")?.addEventListener("click", () => {
+    window.open(DISCORD_INVITE, "_blank");
+  });
+
+  document.getElementById("copyInviteBtn")?.addEventListener("click", () => {
+    copyText(DISCORD_INVITE, "invite copied ♡");
+  });
+
+  document.getElementById("copyUserBtn")?.addEventListener("click", () => {
+    copyText(DISCORD_USER, "user copied ♡");
+  });
+  
+</script>
+<div class="toast" id="toast">copied ♡</div>
+</body>
+</html>

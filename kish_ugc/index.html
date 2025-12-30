@@ -1,0 +1,816 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>kish — ugc hours tracker</title>
+
+  <style>
+    :root{
+      --bg1:#ffe9f3;
+      --bg2:#f7e9ff;
+      --card: rgba(255,255,255,.78);
+      --card2: rgba(255,255,255,.35);
+      --border: rgba(255, 170, 205, .28);
+      --border2: rgba(255,255,255,.25);
+      --text:#201a22;
+      --muted: rgba(32,26,34,.65);
+      --shadow: 0 24px 70px rgba(25,18,28,.14);
+      --shadow2: 0 18px 60px rgba(25,18,28,.10);
+      --r: 26px;
+      --pink:#ff9fca;
+      --pink2:#ffd1e6;
+      --lav:#cdb7ff;
+      --btn:#fff;
+      --btnText:#2a1f2b;
+      --good:#ff7fb8;
+    }
+
+    body[data-theme="lavender"]{
+      --bg1:#f4eaff;
+      --bg2:#efe3ff;
+      --border: rgba(205, 183, 255, .34);
+      --pink:#cdb7ff;
+      --pink2:#efe7ff;
+      --good:#bfa7ff;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 700px at 50% 15%, rgba(255,255,255,.85), transparent 60%),
+        radial-gradient(900px 600px at 30% 25%, var(--bg1), transparent 60%),
+        radial-gradient(900px 600px at 70% 35%, var(--bg2), transparent 60%),
+        #fff;
+    }
+
+    /* soft sparkles */
+    .sparkles{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      opacity:.35;
+      filter: blur(.1px);
+    }
+    .sparkles span{
+      position:absolute;
+      width:6px;height:6px;
+      border-radius:999px;
+      background: radial-gradient(circle, rgba(255,255,255,.95), rgba(255,255,255,0));
+      animation: twinkle 3.6s infinite ease-in-out;
+    }
+    @keyframes twinkle{
+      0%,100%{ transform: scale(.7); opacity:.25; }
+      50%{ transform: scale(1.25); opacity:.6; }
+    }
+
+    .wrap{
+      min-height:100%;
+      display:grid;
+      place-items:center;
+      padding:42px 18px;
+    }
+
+    .stage{
+      width:min(980px, 100%);
+      position:relative;
+      border-radius: calc(var(--r) + 16px);
+    }
+
+    /* ONE back layer (aligned) */
+    .stage::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius: calc(var(--r) + 16px);
+      background: rgba(255,255,255,.22);
+      border:1px solid var(--border2);
+      transform: translateY(18px) scale(.985);
+      box-shadow: var(--shadow2);
+      z-index:-1;
+      opacity:.9;
+    }
+
+    .panel{
+      border-radius: calc(var(--r) + 16px);
+      background: rgba(255,255,255,.35);
+      border:1px solid rgba(255,255,255,.45);
+      box-shadow: var(--shadow);
+      padding:22px;
+      backdrop-filter: blur(18px);
+    }
+
+    .topbar{
+      display:flex;
+      gap:14px;
+      align-items:center;
+      justify-content:space-between;
+      padding:18px 18px;
+      border-radius: var(--r);
+      background: var(--card);
+      border:1px solid rgba(255,255,255,.55);
+    }
+
+    .title{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      text-transform: lowercase;
+    }
+    .title h1{
+      margin:0;
+      font-size: 22px;
+      letter-spacing:.2px;
+    }
+    .title p{
+      margin:0;
+      font-size: 13px;
+      color:var(--muted);
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.72);
+      border:1px solid var(--border);
+      color: rgba(32,26,34,.8);
+      font-size: 13px;
+      text-transform: lowercase;
+      white-space: nowrap;
+    }
+    .dot{
+      width:9px;height:9px;border-radius:999px;
+      background: var(--pink);
+      box-shadow: 0 0 0 4px rgba(255,159,202,.18);
+    }
+
+    .controls{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      align-items:center;
+    }
+
+    button{
+      appearance:none;
+      border:1px solid var(--border);
+      background: var(--btn);
+      color: var(--btnText);
+      padding:10px 14px;
+      border-radius: 999px;
+      font-weight:600;
+      cursor:pointer;
+      text-transform: lowercase;
+      transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+      box-shadow: 0 10px 22px rgba(25,18,28,.08);
+    }
+    button:hover{ transform: translateY(-1px); box-shadow: 0 14px 28px rgba(25,18,28,.11); }
+    button:active{ transform: translateY(0px); box-shadow: 0 10px 22px rgba(25,18,28,.08); }
+    button.primary{
+      background: linear-gradient(180deg, rgba(255,209,230,.95), rgba(255,255,255,.95));
+    }
+    button.ghost{
+      background: rgba(255,255,255,.68);
+    }
+    button.danger{
+      border-color: rgba(255,120,165,.35);
+    }
+    button:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+      transform:none;
+      box-shadow:none;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap:16px;
+      margin-top:16px;
+    }
+    @media (max-width: 860px){
+      .grid{ grid-template-columns: 1fr; }
+      .controls{ justify-content:flex-start; }
+    }
+
+    .card{
+      border-radius: var(--r);
+      background: var(--card);
+      border:1px solid rgba(255,255,255,.55);
+      padding:18px;
+    }
+    .card h2{
+      margin:0 0 6px 0;
+      font-size: 14px;
+      letter-spacing:.25px;
+      text-transform: lowercase;
+    }
+    .card .sub{
+      margin:0 0 14px 0;
+      color:var(--muted);
+      font-size: 12px;
+      text-transform: lowercase;
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .statgrid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:12px;
+      margin-top:14px;
+    }
+    @media (max-width: 520px){
+      .statgrid{ grid-template-columns: 1fr; }
+    }
+    .stat{
+      border-radius: 18px;
+      padding:14px 14px;
+      background: rgba(255,255,255,.7);
+      border:1px solid rgba(32,26,34,.08);
+      text-transform: lowercase;
+    }
+    .stat .k{
+      font-size: 12px;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+    .stat .v{
+      font-size: 20px;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+
+    input{
+      width:100%;
+      padding:12px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(32,26,34,.10);
+      background: rgba(255,255,255,.82);
+      outline:none;
+      text-transform: lowercase;
+    }
+
+    .loglist{
+      margin-top:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .entry{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap:10px;
+      align-items:center;
+      padding:12px 12px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.72);
+      border:1px solid rgba(32,26,34,.08);
+      text-transform: lowercase;
+    }
+    .entry .meta{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:0;
+    }
+    .entry .meta .line1{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      font-weight:700;
+    }
+    .entry .meta .line2{
+      font-size: 12px;
+      color:var(--muted);
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .mini-btn{
+      padding:8px 10px;
+      border-radius: 14px;
+      box-shadow:none;
+      background: rgba(255,255,255,.8);
+    }
+    .mini-btn:hover{ transform: translateY(-1px); }
+
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:22px;
+      transform: translateX(-50%);
+      padding:12px 14px;
+      border-radius:999px;
+      background: rgba(255,255,255,.92);
+      border:1px solid var(--border);
+      box-shadow: 0 20px 60px rgba(25,18,28,.18);
+      font-weight:700;
+      text-transform: lowercase;
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .2s ease, transform .2s ease;
+    }
+    .toast.show{
+      opacity:1;
+      transform: translateX(-50%) translateY(-2px);
+    }
+
+    /* tiny music pill */
+    .musicbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+      margin-top:10px;
+    }
+    .musicpill{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.72);
+      border:1px solid var(--border);
+      text-transform: lowercase;
+      font-size: 13px;
+    }
+    .iconbtn{
+      padding:8px 10px;
+      border-radius: 999px;
+      box-shadow:none;
+      background: rgba(255,255,255,.85);
+    }
+  </style>
+</head>
+
+<body data-theme="pink">
+  <div class="sparkles" aria-hidden="true" id="sparkles"></div>
+
+  <div class="wrap">
+    <div class="stage">
+      <div class="panel">
+        <div class="topbar">
+          <div class="title">
+            <h1>kish — ugc hours tracker</h1>
+            <p>track sessions, totals, and keep a clean log.</p>
+          </div>
+
+          <div class="controls">
+            <span class="pill" id="statusPill"><span class="dot"></span><span id="statusText">not tracking</span></span>
+            <button class="ghost" id="themeBtn" type="button">toggle theme</button>
+            <button class="ghost" id="exportBtn" type="button">export log</button>
+          </div>
+        </div>
+
+        <div class="musicbar">
+          <div class="musicpill">
+            <span id="nowPlaying">now playing: —</span>
+            <button class="iconbtn" id="prevSong" type="button">⟨</button>
+            <button class="iconbtn" id="playPause" type="button">play</button>
+            <button class="iconbtn" id="nextSong" type="button">⟩</button>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="card">
+            <h2>session</h2>
+            <p class="sub">press start when you begin designing. press end when you stop.</p>
+
+            <div class="row">
+              <button class="primary" id="startBtn" type="button">start session</button>
+              <button id="endBtn" type="button" disabled>end session</button>
+              <button class="danger" id="resetBtn" type="button">reset today</button>
+            </div>
+
+            <div class="statgrid">
+              <div class="stat">
+                <div class="k">today</div>
+                <div class="v" id="todayHrs">0.00h</div>
+              </div>
+              <div class="stat">
+                <div class="k">this week</div>
+                <div class="v" id="weekHrs">0.00h</div>
+              </div>
+              <div class="stat">
+                <div class="k">active timer</div>
+                <div class="v" id="activeTimer">—</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>log</h2>
+            <p class="sub">each session saves automatically (localstorage).</p>
+
+            <input id="noteInput" placeholder="optional note (ex: pigtails, ribbon, retopo…)" />
+
+            <div class="loglist" id="logList">
+              <div class="entry">
+                <div class="meta">
+                  <div class="line1">no sessions yet</div>
+                  <div class="line2">start a session to create your first entry.</div>
+                </div>
+                <div style="font-weight:800; color:var(--muted);">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="toast" id="toast">saved ♡</div>
+      </div>
+    </div>
+  </div>
+
+  <audio id="audio" preload="auto"></audio>
+
+  <script>
+    // ---------- helpers ----------
+    const $ = (id) => document.getElementById(id);
+
+    function toast(msg="saved ♡"){
+      const t = $("toast");
+      t.textContent = msg.toLowerCase();
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 1200);
+    }
+
+    function pad(n){ return String(n).padStart(2,"0"); }
+
+    function fmtH(ms){
+      const h = ms / 3600000;
+      return (Math.max(0,h)).toFixed(2) + "h";
+    }
+
+    function fmtClock(ms){
+      const s = Math.floor(ms/1000);
+      const hh = Math.floor(s/3600);
+      const mm = Math.floor((s%3600)/60);
+      const ss = s%60;
+      return `${pad(hh)}:${pad(mm)}:${pad(ss)}`;
+    }
+
+    function startOfDay(d){
+      const x = new Date(d);
+      x.setHours(0,0,0,0);
+      return x;
+    }
+
+    // monday start week
+    function startOfWeek(d){
+      const x = startOfDay(d);
+      const day = (x.getDay() + 6) % 7; // mon=0
+      x.setDate(x.getDate() - day);
+      return x;
+    }
+
+    function sameDay(a,b){
+      return a.getFullYear()===b.getFullYear() &&
+             a.getMonth()===b.getMonth() &&
+             a.getDate()===b.getDate();
+    }
+
+    // ---------- storage ----------
+    const KEY = "kish_ugc_log_v1";
+    const STATE = "kish_ugc_state_v1";
+    const THEME = "kish_ugc_theme_v1";
+
+    function loadLog(){
+      try{ return JSON.parse(localStorage.getItem(KEY) || "[]"); }
+      catch{ return []; }
+    }
+    function saveLog(list){
+      localStorage.setItem(KEY, JSON.stringify(list));
+    }
+
+    function loadState(){
+      try{ return JSON.parse(localStorage.getItem(STATE) || "{}"); }
+      catch{ return {}; }
+    }
+    function saveState(s){
+      localStorage.setItem(STATE, JSON.stringify(s));
+    }
+
+    // ---------- sparkles ----------
+    (function makeSparkles(){
+      const host = $("sparkles");
+      const n = 18;
+      for(let i=0;i<n;i++){
+        const sp = document.createElement("span");
+        sp.style.left = (Math.random()*100) + "%";
+        sp.style.top = (Math.random()*100) + "%";
+        sp.style.animationDelay = (Math.random()*3.6) + "s";
+        sp.style.width = sp.style.height = (Math.random()*5 + 4) + "px";
+        host.appendChild(sp);
+      }
+    })();
+
+    // ---------- theme ----------
+    const savedTheme = localStorage.getItem(THEME) || "pink";
+    document.body.dataset.theme = savedTheme === "lavender" ? "lavender" : "pink";
+
+    $("themeBtn").addEventListener("click", () => {
+      const next = document.body.dataset.theme === "lavender" ? "pink" : "lavender";
+      document.body.dataset.theme = next;
+      localStorage.setItem(THEME, next);
+      toast(next === "lavender" ? "lavender ♡" : "pink ♡");
+    });
+
+    // ---------- playlist / music ----------
+    const playlist = [
+      { title: "sixthirty", src: "sixthirty.mp3" },
+      { title: "song 2", src: "song2.mp3" },
+      { title: "song 3", src: "song3.mp3" },
+    ];
+
+    let songIndex = 0;
+    const audio = $("audio");
+
+    function loadSong(i){
+      songIndex = (i + playlist.length) % playlist.length;
+      audio.src = playlist[songIndex].src;
+      $("nowPlaying").textContent = `now playing: ${playlist[songIndex].title}`.toLowerCase();
+    }
+
+    function setPlayLabel(){
+      $("playPause").textContent = audio.paused ? "play" : "pause";
+    }
+
+    $("prevSong").addEventListener("click", async () => {
+      loadSong(songIndex - 1);
+      await audio.play().catch(()=>{});
+      setPlayLabel();
+    });
+
+    $("nextSong").addEventListener("click", async () => {
+      loadSong(songIndex + 1);
+      await audio.play().catch(()=>{});
+      setPlayLabel();
+    });
+
+    $("playPause").addEventListener("click", async () => {
+      if(audio.src === "") loadSong(0);
+      if(audio.paused){
+        await audio.play().catch(()=>{});
+      }else{
+        audio.pause();
+      }
+      setPlayLabel();
+    });
+
+    audio.addEventListener("ended", async () => {
+      loadSong(songIndex + 1);
+      await audio.play().catch(()=>{});
+      setPlayLabel();
+    });
+
+    loadSong(0);
+    setPlayLabel();
+
+    // ---------- tracker logic ----------
+    let log = loadLog();
+    let st = loadState(); // { running: bool, startMs: number }
+    let tick = null;
+
+    function updateStatus(){
+      const running = !!st.running;
+      $("statusText").textContent = (running ? "tracking" : "not tracking");
+      $("startBtn").disabled = running;
+      $("endBtn").disabled = !running;
+    }
+
+    function calcTodayMs(){
+      const today = new Date();
+      const sd = startOfDay(today).getTime();
+      const ed = sd + 86400000;
+
+      let sum = 0;
+      for(const e of log){
+        if(e.endMs && e.startMs){
+          if(e.startMs >= sd && e.startMs < ed) sum += (e.endMs - e.startMs);
+        }
+      }
+      // include running session time if started today
+      if(st.running && st.startMs >= sd && st.startMs < ed){
+        sum += (Date.now() - st.startMs);
+      }
+      return sum;
+    }
+
+    function calcWeekMs(){
+      const now = new Date();
+      const wk = startOfWeek(now).getTime();
+      const wkEnd = wk + 7*86400000;
+
+      let sum = 0;
+      for(const e of log){
+        if(e.endMs && e.startMs){
+          if(e.startMs >= wk && e.startMs < wkEnd) sum += (e.endMs - e.startMs);
+        }
+      }
+      if(st.running && st.startMs >= wk && st.startMs < wkEnd){
+        sum += (Date.now() - st.startMs);
+      }
+      return sum;
+    }
+
+    function renderStats(){
+      $("todayHrs").textContent = fmtH(calcTodayMs());
+      $("weekHrs").textContent = fmtH(calcWeekMs());
+      $("activeTimer").textContent = st.running ? fmtClock(Date.now() - st.startMs) : "—";
+    }
+
+    function renderLog(){
+      const host = $("logList");
+      host.innerHTML = "";
+
+      if(!log.length){
+        host.innerHTML = `
+          <div class="entry">
+            <div class="meta">
+              <div class="line1">no sessions yet</div>
+              <div class="line2">start a session to create your first entry.</div>
+            </div>
+            <div style="font-weight:800; color:var(--muted);">—</div>
+          </div>
+        `;
+        return;
+      }
+
+      // newest first
+      const sorted = [...log].sort((a,b) => b.startMs - a.startMs);
+
+      for(const e of sorted){
+        const d = new Date(e.startMs);
+        const dateLabel = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+        const dur = (e.endMs - e.startMs);
+        const note = (e.note || "").trim();
+
+        const row = document.createElement("div");
+        row.className = "entry";
+
+        row.innerHTML = `
+          <div class="meta">
+            <div class="line1">
+              <span>${dateLabel}</span>
+              <span style="color:var(--muted); font-weight:700;">•</span>
+              <span>${fmtH(dur)}</span>
+            </div>
+            <div class="line2">${note ? note : "no note"}</div>
+          </div>
+          <button class="mini-btn danger" type="button" data-del="${e.id}">delete</button>
+        `;
+
+        host.appendChild(row);
+      }
+
+      host.querySelectorAll("[data-del]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-del");
+          log = log.filter(x => x.id !== id);
+          saveLog(log);
+          toast("deleted ♡");
+          renderLog();
+          renderStats();
+        });
+      });
+    }
+
+    function startTick(){
+      stopTick();
+      tick = setInterval(renderStats, 250);
+    }
+    function stopTick(){
+      if(tick) clearInterval(tick);
+      tick = null;
+    }
+
+    $("startBtn").addEventListener("click", () => {
+      st.running = true;
+      st.startMs = Date.now();
+      saveState(st);
+      updateStatus();
+      startTick();
+      toast("started ♡");
+    });
+
+    $("endBtn").addEventListener("click", () => {
+      if(!st.running) return;
+
+      const note = $("noteInput").value.trim().toLowerCase();
+      const endMs = Date.now();
+
+      // create entry
+      const entry = {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(),
+        startMs: st.startMs,
+        endMs,
+        note
+      };
+
+      log.push(entry);
+      saveLog(log);
+
+      // clear running state
+      st.running = false;
+      st.startMs = null;
+      saveState(st);
+
+      $("noteInput").value = "";
+      updateStatus();
+      stopTick();
+      renderLog();
+      renderStats();
+      toast("saved ♡");
+    });
+
+    $("resetBtn").addEventListener("click", () => {
+      // remove only entries from today
+      const today = new Date();
+      log = log.filter(e => !sameDay(new Date(e.startMs), today));
+      saveLog(log);
+
+      // also stop running if started today
+      if(st.running && sameDay(new Date(st.startMs), today)){
+        st.running = false;
+        st.startMs = null;
+        saveState(st);
+      }
+
+      updateStatus();
+      renderLog();
+      renderStats();
+      toast("reset ♡");
+    });
+
+    // ---------- export ----------
+    function makeTextExport(){
+      // newest first
+      const sorted = [...log].sort((a,b)=>b.startMs-a.startMs);
+      const lines = [];
+      lines.push("kish — ugc hours tracker");
+      lines.push("export:");
+      lines.push("");
+
+      for(const e of sorted){
+        const d = new Date(e.startMs);
+        const dateLabel = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+        const dur = fmtH(e.endMs - e.startMs);
+        const note = (e.note || "no note");
+        lines.push(`${dateLabel} • ${dur} • ${note}`);
+      }
+
+      lines.push("");
+      lines.push(`today: ${fmtH(calcTodayMs())}`);
+      lines.push(`this week: ${fmtH(calcWeekMs())}`);
+      return lines.join("\n");
+    }
+
+    function downloadJSON(){
+      const blob = new Blob([JSON.stringify({ exportedAt: Date.now(), log }, null, 2)], { type:"application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "kish-ugc-log.json";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    async function copyText(){
+      const text = makeTextExport();
+      try{
+        await navigator.clipboard.writeText(text);
+        toast("copied ♡");
+      }catch{
+        toast("copy failed");
+      }
+    }
+
+    $("exportBtn").addEventListener("click", async () => {
+      // quick choice: copy text first, then download json
+      await copyText();
+      downloadJSON();
+    });
+
+    // ---------- init ----------
+    updateStatus();
+    renderLog();
+    renderStats();
+    if(st.running) startTick();
+  </script>
+</body>
+</html>

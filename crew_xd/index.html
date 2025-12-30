@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>crew dossiers</title>
+
+  <style>
+    :root{
+      --bg: #0b0b0f;
+      --panel: rgba(255,255,255,0.04);
+      --panel2: rgba(255,255,255,0.06);
+      --stroke: rgba(255,255,255,0.08);
+      --stroke2: rgba(255,255,255,0.06);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.62);
+      --muted2: rgba(255,255,255,0.48);
+      --pink: #ffb7d9;
+      --shadow: 0 40px 120px rgba(0,0,0,0.65);
+      --radius: 28px;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 20% -10%, rgba(255,183,217,0.18), transparent 40%),
+        radial-gradient(circle at 80% 0%, rgba(255,255,255,0.06), transparent 50%),
+        radial-gradient(circle at 30% 120%, rgba(255,183,217,0.12), transparent 55%),
+        var(--bg);
+      overflow-x:hidden;
+    }
+
+    /* floating background particles */
+    .bg-particles{
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .bg-particles span{
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.18);
+      box-shadow: 0 0 22px rgba(255,255,255,0.10);
+      animation: floatUp linear infinite;
+      opacity: 0.75;
+    }
+    @keyframes floatUp{
+      from{
+        transform: translateY(18vh) translateX(0) scale(0.9);
+        opacity: 0;
+      }
+      18%{ opacity: 0.85; }
+      to{
+        transform: translateY(-120vh) translateX(60px) scale(1.35);
+        opacity: 0;
+      }
+    }
+
+    /* cursor sparkles */
+    .sparkles{
+      position: fixed;
+      inset: 0;
+      pointer-events:none;
+      z-index: 2;
+    }
+    .spark{
+      position:absolute;
+      width:10px; height:10px;
+      border-radius:999px;
+      background: rgba(255,183,217,0.65);
+      filter: blur(0.2px);
+      box-shadow: 0 0 16px rgba(255,183,217,0.25);
+      transform: translate(-50%,-50%);
+      animation: pop 900ms ease-out forwards;
+    }
+    @keyframes pop{
+      0%{ opacity:0; transform: translate(-50%,-50%) scale(0.2); }
+      20%{ opacity:1; }
+      100%{ opacity:0; transform: translate(-50%,-70%) scale(1.4); }
+    }
+
+    /* layout */
+    .wrap{
+      position: relative;
+      z-index: 1;
+      min-height: 100%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      padding: 56px 18px 40px;
+    }
+
+    .title{
+      text-align:center;
+      margin-bottom: 16px;
+    }
+    .title h1{
+      margin:0;
+      font-size: 44px;
+      letter-spacing: -0.02em;
+      font-weight: 800;
+    }
+
+    .stage{
+      position: relative;
+      width: min(1200px, 100%);
+      margin-top: 14px;
+    }
+
+    /* stacked panels behind cards (guns.lol-ish depth) */
+    .backs{
+      position:absolute;
+      inset: -22px -18px auto -18px;
+      height: 280px;
+      pointer-events:none;
+      z-index:0;
+    }
+    .back{
+      position:absolute;
+      inset:0;
+      border-radius: 34px;
+      background: rgba(255,255,255,0.03);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.05);
+      filter: blur(0.0px);
+    }
+    .back.b1{ transform: translate(12px, 18px); opacity:0.35; }
+    .back.b2{ transform: translate(-12px, 32px); opacity:0.20; }
+    .back.b3{ transform: translate(0px, 48px); opacity:0.12; }
+
+    .grid{
+      position: relative;
+      z-index: 1;
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+      padding-top: 14px;
+    }
+    @media (max-width: 1100px){ .grid{ grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 640px){ .grid{ grid-template-columns: 1fr; } }
+
+    .card{
+      position: relative;
+      background: linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.035));
+      border-radius: var(--radius);
+      padding: 18px 18px 16px;
+      box-shadow: var(--shadow);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 30px 120px rgba(0,0,0,0.55);
+      transform: translateY(0);
+      transition: transform .18s ease, box-shadow .18s ease;
+      overflow:hidden;
+      min-height: 360px;
+    }
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-40px -40px auto -40px;
+      height: 180px;
+      background: radial-gradient(circle at 30% 20%, rgba(255,183,217,0.16), transparent 55%);
+      pointer-events:none;
+    }
+    .card:hover{
+      transform: translateY(-6px);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.10), 0 48px 150px rgba(0,0,0,0.72);
+    }
+
+    .toprow{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 1;
+    }
+    .avatar{
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      overflow:hidden;
+      background: rgba(255,255,255,0.06);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.06);
+      flex: 0 0 auto;
+    }
+    .avatar img{ width:100%; height:100%; object-fit:cover; }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      background: rgba(255,183,217,0.12);
+      color: var(--pink);
+      border: 1px solid rgba(255,183,217,0.18);
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .dot{
+      width: 8px; height: 8px;
+      border-radius: 999px;
+      background: var(--pink);
+      box-shadow: 0 0 12px rgba(255,183,217,0.25);
+      flex: 0 0 auto;
+    }
+
+    .name{
+      margin: 10px 0 6px;
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      position: relative;
+      z-index: 1;
+      text-transform: lowercase;
+    }
+    .tagline{
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 15px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stats{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+      position: relative;
+      z-index: 1;
+    }
+    .box{
+      border-radius: 18px;
+      background: rgba(255,255,255,0.035);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+      padding: 14px 14px 12px;
+      min-height: 94px;
+    }
+    .k{
+      color: rgba(255,255,255,0.55);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: lowercase;
+    }
+    .v{
+      margin-top: 8px;
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .btn{
+      margin-top: 16px;
+      width: 100%;
+      padding: 14px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      cursor:pointer;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      transition: background .15s ease, transform .15s ease;
+      position: relative;
+      z-index: 1;
+    }
+    .btn:hover{
+      background: rgba(255,255,255,0.10);
+      transform: translateY(-1px);
+    }
+
+    /* footer credit */
+    .credit{
+      margin-top: 26px;
+      color: rgba(255,255,255,0.52);
+      font-size: 14px;
+      display:flex;
+      align-items:center;
+      gap: 6px;
+    }
+    .heart{
+      color: rgba(255,255,255,0.85);
+      filter: drop-shadow(0 0 10px rgba(255,255,255,0.18));
+    }
+
+    /* modal dossier */
+    .modal{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.78);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 60;
+      padding: 24px;
+      backdrop-filter: blur(6px);
+    }
+    .modal.active{ display:flex; }
+
+    .dossier{
+      width: 920px;
+      max-width: 96%;
+      background: radial-gradient(circle at 25% 0%, rgba(255,183,217,0.10), transparent 40%), #0f0f13;
+      border-radius: 34px;
+      padding: 30px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 80px 180px rgba(0,0,0,0.85);
+    }
+
+    .dos-top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .dos-left{ display:flex; gap: 16px; align-items:center; }
+    .dos-avatar{
+      width: 72px;
+      height: 72px;
+      border-radius: 22px;
+      overflow:hidden;
+      background:#1b1b22;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.06);
+      flex: 0 0 auto;
+    }
+    .dos-avatar img{ width:100%; height:100%; object-fit:cover; }
+
+    .dos-badges{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom: 10px; }
+
+    .pill2{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      max-width: 320px;
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      background: rgba(255,183,217,.14);
+      border: 1px solid rgba(255,183,217,0.18);
+      color: var(--pink);
+    }
+    .pill2.subtle{
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255,255,255,.82);
+    }
+
+    #dossierName{
+      margin: 0;
+      font-size: 40px;
+      letter-spacing: -0.02em;
+      text-transform: lowercase;
+    }
+    .dos-sub{
+      color: var(--muted);
+      margin-top: 6px;
+      font-size: 16px;
+    }
+
+    .xbtn{
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      border: none;
+      background: rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.88);
+      cursor:pointer;
+      font-size: 26px;
+      line-height: 1;
+    }
+    .xbtn:hover{ background: rgba(255,255,255,0.12); }
+
+    .dos-grid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .dos-box{
+      background: rgba(255,255,255,0.045);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.07);
+      min-height: 110px;
+    }
+
+    .k2{
+      color: rgba(255,255,255,0.55);
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: lowercase;
+    }
+    .v2{
+      margin-top: 10px;
+      font-size: 18px;
+      line-height: 1.55;
+      color: rgba(255,255,255,0.85);
+    }
+
+    .dos-notes{
+      margin-top: 14px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.07);
+    }
+
+    .close{
+      margin-top: 18px;
+      width: 100%;
+      padding: 15px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      cursor:pointer;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+    .close:hover{ background: rgba(255,255,255,0.12); }
+
+    @media (max-width: 720px){
+      .title h1{ font-size: 38px; }
+      .card{ min-height: 340px; }
+      .dos-grid{ grid-template-columns: 1fr; }
+      .dossier{ padding: 22px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg-particles" aria-hidden="true" id="bgParticles"></div>
+  <div class="sparkles" aria-hidden="true" id="sparkLayer"></div>
+
+  <div class="wrap">
+    <div class="title">
+      <h1>crew dossiers</h1>
+    </div>
+
+    <div class="stage">
+      <div class="backs" aria-hidden="true">
+        <div class="back b1"></div>
+        <div class="back b2"></div>
+        <div class="back b3"></div>
+      </div>
+
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <div class="credit">
+      made by bunny <span class="heart">♡</span>
+    </div>
+  </div>
+
+  <!-- DOSSIER MODAL -->
+  <div class="modal" id="modal" role="dialog" aria-modal="true">
+    <div class="dossier">
+      <div class="dos-top">
+        <div class="dos-left">
+          <div class="dos-avatar"><img id="dosImg" alt=""></div>
+          <div>
+            <div class="dos-badges">
+              <span class="pill2" id="dosStatus"></span>
+              <span class="pill2 subtle" id="dosLane"></span>
+            </div>
+            <h2 id="dossierName"></h2>
+            <div class="dos-sub" id="dosSubtitle"></div>
+          </div>
+        </div>
+        <button class="xbtn" onclick="closeDossier()" aria-label="close">×</button>
+      </div>
+
+      <div class="dos-grid">
+        <div class="dos-box">
+          <div class="k2">signature</div>
+          <div class="v2" id="dosSignature"></div>
+        </div>
+        <div class="dos-box">
+          <div class="k2">energy</div>
+          <div class="v2" id="dosEnergy"></div>
+        </div>
+        <div class="dos-box">
+          <div class="k2">skills</div>
+          <div class="v2" id="dosSkills"></div>
+        </div>
+        <div class="dos-box">
+          <div class="k2">known for</div>
+          <div class="v2" id="dosKnown"></div>
+        </div>
+      </div>
+
+      <div class="dos-notes">
+        <div class="k2">notes</div>
+        <div class="v2" id="dossierText"></div>
+      </div>
+
+      <button class="close" onclick="closeDossier()">close dossier</button>
+    </div>
+  </div>
+
+  <script>
+    // --- DATA (no "AI" mentions anywhere) ---
+    const crew = [
+      {
+        key: "osa",
+        name: "osa",
+        img: "osa.png",
+        status: "valorant + da hood prodigy",
+        tagline: "aim discipline + chaos control",
+        laneK: "lane",
+        laneV: "competitive games",
+        energyK: "energy",
+        energyV: "high focus",
+        signature: "snaps to the target when it matters",
+        energy: "high focus, low talk, high output",
+        skills: "micro-adjusts • crosshair discipline • calm under pressure • confident peeks",
+        known: "clutch moments • clean movement • quiet flex",
+        notes: "doesn’t say much when locked in. shows up, performs, disappears. the kind of player that makes hard stuff look normal.",
+        song: "song6.mp3"
+      },
+      {
+        key: "dallas",
+        name: "dallas",
+        img: "dallas.png",
+        status: "builds fast (mostly)",
+        tagline: "coding prodigy vibes",
+        laneK: "lane",
+        laneV: "engineering",
+        energyK: "energy",
+        energyV: "locked in",
+        signature: "turns ideas into working stuff overnight",
+        energy: "locked in, focused, unbothered",
+        skills: "debugging • systems thinking • speed builds • fixes things that shouldn’t be fixable",
+        known: "shipping • last-minute saves • “watch this” moments",
+        notes: "the more pressure, the cleaner it gets. when he goes quiet, something dangerous is being built. don’t ask—just refresh.",
+        song: "sixthirty.mp3"
+      },
+      {
+        key: "kish",
+        name: "kish",
+        img: "kish.png",
+        status: "ugc princess",
+        tagline: "best ugc in da game boo",
+        laneK: "lane",
+        laneV: "ugc design",
+        energyK: "energy",
+        energyV: "creative flow",
+        signature: "makes the fit look expensive on purpose",
+        energy: "creative flow + main character aura",
+        skills: "concepting • detailing • polish • branding sense • clean silhouettes",
+        known: "best ugc • model energy • always leveled up",
+        notes: "queen energy. if it’s not cute, it’s not finished. always tweaks the final 5% until it hits exactly right.",
+        song: "song4.mp3"
+      },
+      {
+        key: "cona",
+        name: "cona",
+        img: "cona.png",
+        status: "future animation specialist",
+        tagline: "sleepy’s bender",
+        laneK: "lane",
+        laneV: "animation",
+        energyK: "energy",
+        energyV: "dream state",
+        signature: "quiet mind, loud talent",
+        energy: "dream state, creative bursts",
+        skills: "motion sense • timing • style • story moments • smooth scenes",
+        known: "creative direction • clean transitions • lowkey menace",
+        notes: "looks calm… then drops something insane. the type to bend reality with one good idea and act like it’s normal.",
+        song: "song5.mp3"
+      }
+    ];
+
+    // --- BUILD CARDS ---
+    const grid = document.getElementById("grid");
+    grid.innerHTML = crew.map(c => `
+      <div class="card" data-key="${c.key}">
+        <div class="toprow">
+          <div class="avatar"><img src="${c.img}" alt="${c.name}"></div>
+          <div class="pill" title="${c.status}">
+            <span class="dot"></span>
+            <span>${c.status}</span>
+          </div>
+        </div>
+
+        <div class="name">${c.name}</div>
+        <div class="tagline">${c.tagline}</div>
+
+        <div class="stats">
+          <div class="box">
+            <div class="k">${c.laneK}</div>
+            <div class="v">${c.laneV}</div>
+          </div>
+          <div class="box">
+            <div class="k">${c.energyK}</div>
+            <div class="v">${c.energyV}</div>
+          </div>
+        </div>
+
+        <button class="btn" type="button" onclick="openDossier('${c.key}')">view dossier</button>
+      </div>
+    `).join("");
+
+    // --- BACKGROUND FLOATING PARTICLES ---
+    (function spawnBgParticles(){
+      const holder = document.getElementById("bgParticles");
+      if(!holder) return;
+      holder.innerHTML = "";
+      const COUNT = 52;
+      for(let i=0;i<COUNT;i++){
+        const p = document.createElement("span");
+        const left = Math.random() * 100;
+        const size = 5 + Math.random() * 10;      // 5-15px
+        const dur = 10 + Math.random() * 22;      // 10-32s
+        const delay = Math.random() * 14;         // 0-14s
+        p.style.left = left + "vw";
+        p.style.bottom = (-30 - Math.random() * 50) + "vh";
+        p.style.width = size + "px";
+        p.style.height = size + "px";
+        p.style.animationDuration = dur + "s";
+        p.style.animationDelay = delay + "s";
+        p.style.filter = `blur(${Math.random()*1.2}px)`;
+        holder.appendChild(p);
+      }
+    })();
+
+    // --- CURSOR SPARKLES ---
+    const sparkLayer = document.getElementById("sparkLayer");
+    let lastSpark = 0;
+    window.addEventListener("mousemove", (e)=>{
+      const now = performance.now();
+      if(now - lastSpark < 45) return; // throttle
+      lastSpark = now;
+
+      const s = document.createElement("div");
+      s.className = "spark";
+      s.style.left = e.clientX + "px";
+      s.style.top = e.clientY + "px";
+      const size = 6 + Math.random()*8;
+      s.style.width = size + "px";
+      s.style.height = size + "px";
+      s.style.opacity = 0.35 + Math.random()*0.5;
+      sparkLayer.appendChild(s);
+      setTimeout(()=>s.remove(), 950);
+    });
+
+    // --- DOSSIER + MUSIC (play on open, stop on close) ---
+    let audio = new Audio();
+    audio.volume = 0.35;
+
+    function getCrew(key){
+      return crew.find(x => x.key === key);
+    }
+
+    function openDossier(key){
+      const c = getCrew(key);
+      if(!c) return;
+
+      document.getElementById("modal").classList.add("active");
+
+      document.getElementById("dosImg").src = c.img;
+      document.getElementById("dosImg").alt = c.name;
+
+      document.getElementById("dosStatus").textContent = c.status;
+      document.getElementById("dosLane").textContent = c.laneV;
+
+      document.getElementById("dossierName").textContent = c.name;
+      document.getElementById("dosSubtitle").textContent = c.tagline;
+
+      document.getElementById("dosSignature").textContent = c.signature;
+      document.getElementById("dosEnergy").textContent = c.energy;
+      document.getElementById("dosSkills").textContent = c.skills;
+      document.getElementById("dosKnown").textContent = c.known;
+      document.getElementById("dossierText").textContent = c.notes;
+
+      // stop any previous track, then play this dossier's track
+      try{
+        audio.pause();
+        audio.currentTime = 0;
+      }catch(_){}
+
+      audio = new Audio(c.song);
+      audio.volume = 0.35;
+
+      // browser autoplay rules: opening by click counts as gesture
+      audio.play().catch(()=>{});
+    }
+
+    function closeDossier(){
+      document.getElementById("modal").classList.remove("active");
+      try{
+        audio.pause();
+        audio.currentTime = 0;
+      }catch(_){}
+    }
+
+    // click outside closes
+    document.getElementById("modal").addEventListener("click", (e)=>{
+      if(e.target.id === "modal") closeDossier();
+    });
+
+    // ESC closes
+    window.addEventListener("keydown", (e)=>{
+      if(e.key === "Escape") closeDossier();
+    });
+  </script>
+</body>
+</html>
